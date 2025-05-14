@@ -35,7 +35,7 @@ const mockHistory = [
     type: 'content',
     date: '2023-05-10',
     score: 78,
-    response: 'The UltraFocus Noise-Cancelling Headphones deliver crystal-clear audio while blocking out distractions. With memory foam ear cushions and a lightweight design, they're comfortable for all-day wear. The 30-hour battery life ensures your music keeps playing as long as you need it to.',
+    response: "The UltraFocus Noise-Cancelling Headphones deliver crystal-clear audio while blocking out distractions. With memory foam ear cushions and a lightweight design, they're comfortable for all-day wear. The 30-hour battery life ensures your music keeps playing as long as you need it to.",
     feedback: 'Good description of features, but could better connect features to benefits for the user. Consider adding more sensory language.'
   },
   {

@@ -56,7 +56,7 @@ const mockChallenges = [
     id: 6,
     type: 'uxwriting',
     title: 'Create Onboarding Microcopy',
-    brief: 'Write welcoming and instructive microcopy for a fitness app's first-time user experience.',
+    brief: "Write welcoming and instructive microcopy for a fitness app's first-time user experience.",
     difficulty: 'Hard',
     timeEstimate: '15 min',
   }
