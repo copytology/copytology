@@ -16,11 +16,15 @@ import { useAuth } from '@/context/AuthContext';
 interface NavbarProps {
   currentXp?: number;
   level?: string;
+  isLoggedIn?: boolean; // Add the isLoggedIn prop to the interface
 }
 
-const Navbar = ({ currentXp = 0, level = "Intern" }: NavbarProps) => {
+const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  
+  // Use the isLoggedIn prop or check if user exists
+  const isAuthenticated = isLoggedIn || !!user;
   
   const handleLogout = async () => {
     await signOut();
@@ -43,7 +47,7 @@ const Navbar = ({ currentXp = 0, level = "Intern" }: NavbarProps) => {
           <Link to="/" className="text-gray-600 hover:text-brand-500 transition-colors">
             Home
           </Link>
-          {user && (
+          {isAuthenticated && (
             <>
               <Link to="/dashboard" className="text-gray-600 hover:text-brand-500 transition-colors">
                 Challenges
@@ -59,7 +63,7 @@ const Navbar = ({ currentXp = 0, level = "Intern" }: NavbarProps) => {
         </nav>
         
         <div className="flex items-center space-x-4">
-          {user ? (
+          {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center bg-gray-50 rounded-full px-3 py-1">
                 <Trophy size={16} className="text-brand-400 mr-2" />
