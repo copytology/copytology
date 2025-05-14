@@ -1,12 +1,8 @@
-// Import from Radix UI directly to avoid circular dependency
-import {
+// Import from Radix UI directly
+import type {
   ToastActionElement,
   ToastProps
 } from "@/components/ui/toast";
-
-import {
-  useToast as useToastPrimitive,
-} from "@radix-ui/react-toast";
 
 export type { ToastProps, ToastActionElement };
 
