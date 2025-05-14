@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,18 +8,65 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Register = () => {
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [agreeTerms, setAgreeTerms] = React.useState(false);
+  const { signUp, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const handleRegister = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Redirect to dashboard if already logged in
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+  
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Register with:', { name, email, password, agreeTerms });
-    // Will implement actual registration later
+    
+    if (!name || !email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!agreeTerms) {
+      toast({
+        title: "Error",
+        description: "You must agree to the Terms of Service",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await signUp(email, password, name);
   };
+  
+  if (loading && user) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-400"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -74,7 +121,7 @@ const Register = () => {
                   required
                 />
                 <p className="text-xs text-gray-500">
-                  Password must be at least 8 characters long
+                  Password must be at least 6 characters long
                 </p>
               </div>
               
@@ -100,9 +147,9 @@ const Register = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-brand-400 hover:bg-brand-500"
-                disabled={!agreeTerms}
+                disabled={loading || !agreeTerms}
               >
-                Sign Up
+                {loading ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </form>
             
@@ -119,7 +166,7 @@ const Register = () => {
               </div>
               
               <div className="mt-4 grid grid-cols-1 gap-2">
-                <Button variant="outline" type="button" className="w-full">
+                <Button variant="outline" type="button" className="w-full" disabled>
                   Google
                 </Button>
               </div>

@@ -1,22 +1,51 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const { signIn, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const handleLogin = (e: React.FormEvent) => {
+  useEffect(() => {
+    // Redirect to home if already logged in
+    if (user) {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+  
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login with:', { email, password });
-    // Will implement actual auth later
+    
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    await signIn(email, password);
   };
+  
+  if (loading && user) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-400"></div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -64,8 +93,8 @@ const Login = () => {
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-brand-400 hover:bg-brand-500">
-                Sign In
+              <Button type="submit" className="w-full bg-brand-400 hover:bg-brand-500" disabled={loading}>
+                {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
             
@@ -82,7 +111,7 @@ const Login = () => {
               </div>
               
               <div className="mt-4 grid grid-cols-1 gap-2">
-                <Button variant="outline" type="button" className="w-full">
+                <Button variant="outline" type="button" className="w-full" disabled>
                   Google
                 </Button>
               </div>

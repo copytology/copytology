@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { BookOpen, Trophy, User, LogOut, Home } from 'lucide-react';
@@ -11,21 +11,23 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/AuthContext';
 
 interface NavbarProps {
-  isLoggedIn?: boolean;
   currentXp?: number;
   level?: string;
 }
 
-const Navbar = ({ isLoggedIn = false, currentXp = 0, level = "Intern" }: NavbarProps) => {
-  // We'll replace this with actual auth later
-  const handleLogout = () => {
-    console.log("User logged out");
-    // Will add actual logout functionality later
+const Navbar = ({ currentXp = 0, level = "Intern" }: NavbarProps) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
   };
   
-  const userInitial = "U";
+  const userInitial = user?.email?.[0].toUpperCase() || "U";
 
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 md:px-6 sticky top-0 z-50">
@@ -41,7 +43,7 @@ const Navbar = ({ isLoggedIn = false, currentXp = 0, level = "Intern" }: NavbarP
           <Link to="/" className="text-gray-600 hover:text-brand-500 transition-colors">
             Home
           </Link>
-          {isLoggedIn && (
+          {user && (
             <>
               <Link to="/dashboard" className="text-gray-600 hover:text-brand-500 transition-colors">
                 Challenges
@@ -57,7 +59,7 @@ const Navbar = ({ isLoggedIn = false, currentXp = 0, level = "Intern" }: NavbarP
         </nav>
         
         <div className="flex items-center space-x-4">
-          {isLoggedIn ? (
+          {user ? (
             <div className="flex items-center space-x-4">
               <div className="hidden md:flex items-center bg-gray-50 rounded-full px-3 py-1">
                 <Trophy size={16} className="text-brand-400 mr-2" />
