@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 type AuthContextType = {
   user: User | null;
@@ -22,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Set up auth state listener first
@@ -35,8 +36,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             title: "Signed in successfully",
             description: "Welcome back!",
           });
+          
           // Use navigate instead of redirecting to prevent page refresh
-          navigate('/dashboard');
+          // Get the intended destination or default to dashboard
+          const from = location.state?.from || '/dashboard';
+          navigate(from, { replace: true });
         }
         
         if (event === 'SIGNED_OUT') {
@@ -44,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             title: "Signed out successfully",
             description: "See you soon!",
           });
-          // Use navigate instead of redirecting to prevent page refresh
+          // Navigate to home page
           navigate('/');
         }
       }
@@ -60,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast, navigate]);
+  }, [toast, navigate, location]);
 
   const signIn = async (email: string, password: string) => {
     try {
