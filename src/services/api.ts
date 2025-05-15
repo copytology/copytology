@@ -23,6 +23,11 @@ export interface Submission {
   improvement_tip: string;
   xp_gained: number;
   created_at: string;
+  challenge?: {
+    title: string;
+    type: string;
+    difficulty: string;
+  };
 }
 
 export interface UserProfile {
@@ -49,7 +54,7 @@ export const api = {
     
     const { data, error } = await supabase
       .from('profiles')
-      .select('*, levels:level_id(title, required_xp, description)')
+      .select('*, levels:level_id(id, title, required_xp, description)')
       .eq('id', user.id)
       .single();
       

@@ -11,11 +11,11 @@ import { Loader2, Calendar, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import { api, Submission } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 
 interface DetailDialogProps {
-  submission: any;
+  submission: Submission | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -27,7 +27,7 @@ const DetailDialog = ({ submission, open, onOpenChange }: DetailDialogProps) => 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{submission.challenge.title}</DialogTitle>
+          <DialogTitle>{submission.challenge?.title || 'Submission Details'}</DialogTitle>
           <DialogDescription>
             Submitted on {format(new Date(submission.created_at), 'MMMM d, yyyy')}
           </DialogDescription>
@@ -77,7 +77,7 @@ const History = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('all');
-  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   
   const { data: userProfile } = useQuery({
@@ -92,21 +92,23 @@ const History = () => {
   } = useQuery({
     queryKey: ['submissions'],
     queryFn: api.getUserSubmissions,
-    onError: (err) => {
-      toast({
-        title: "Error loading submissions",
-        description: err instanceof Error ? err.message : "Please try again later",
-        variant: "destructive"
-      });
+    meta: {
+      onError: (err: Error) => {
+        toast({
+          title: "Error loading submissions",
+          description: err.message || "Please try again later",
+          variant: "destructive"
+        });
+      }
     }
   });
 
   const filteredSubmissions = submissions?.filter(submission => {
     if (activeTab === 'all') return true;
-    return submission.challenge.type === activeTab;
+    return submission.challenge?.type === activeTab;
   }) || [];
   
-  const viewSubmission = (submission: any) => {
+  const viewSubmission = (submission: Submission) => {
     setSelectedSubmission(submission);
     setDetailOpen(true);
   };
@@ -162,9 +164,9 @@ const History = () => {
               >
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-center">
-                    <CardTitle className="text-lg">{submission.challenge.title}</CardTitle>
+                    <CardTitle className="text-lg">{submission.challenge?.title || 'Untitled Challenge'}</CardTitle>
                     <Badge className="bg-blue-100 text-blue-700">
-                      {submission.challenge.type}
+                      {submission.challenge?.type || 'Unknown'}
                     </Badge>
                   </div>
                 </CardHeader>
