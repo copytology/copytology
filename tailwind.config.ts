@@ -64,18 +64,18 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				brand: {
-					DEFAULT: '#9fc131',
-					50: '#f6fae8',
-					100: '#ecf5cd',
-					200: '#daeaa1',
-					300: '#c3db6b',
-					400: '#9fc131', // primary brand color
-					500: '#7fa220',
-					600: '#608118',
-					700: '#446118',
-					800: '#384e19',
-					900: '#304317',
-					950: '#172509'
+					DEFAULT: '#8ACE00', // Updated to Brat Green
+					50: '#f3fce8',
+					100: '#e5f9d0',
+					200: '#d0f3a6',
+					300: '#b5e873',
+					400: '#8ACE00', // primary brand color (Brat Green)
+					500: '#72ab00',
+					600: '#588700',
+					700: '#446700',
+					800: '#385200',
+					900: '#304500',
+					950: '#1a2700'
 				},
 			},
 			borderRadius: {

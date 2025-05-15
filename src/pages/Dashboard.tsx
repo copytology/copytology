@@ -91,7 +91,7 @@ const Dashboard = () => {
           <Button 
             onClick={handleRefreshChallenges} 
             disabled={refreshMutation.isPending}
-            className="bg-brand-400 hover:bg-brand-500"
+            className="bg-brand-400 hover:bg-brand-500 text-white"
           >
             {refreshMutation.isPending ? (
               <>
@@ -167,7 +167,7 @@ const Dashboard = () => {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
             <p className="text-lg text-gray-600 mb-4">No challenges available.</p>
-            <Button onClick={handleRefreshChallenges} className="bg-brand-400 hover:bg-brand-500">
+            <Button onClick={handleRefreshChallenges} className="bg-brand-400 hover:bg-brand-500 text-white">
               {refreshMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
