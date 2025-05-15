@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -9,64 +9,75 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, Clock, HelpCircle, Sparkles } from 'lucide-react';
+import { ArrowLeft, Clock, HelpCircle, Sparkles, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-
-// Mock challenge data
-const mockChallengeData = {
-  1: {
-    id: 1,
-    type: 'copywriting',
-    title: 'Write a Compelling Email Subject Line',
-    description: 'Email subject lines are critical for open rates. The best subject lines are clear, create urgency, and generate curiosity without being clickbait.',
-    brief: 'Create a subject line for a tech company launching a new productivity app feature that automatically organizes your calendar based on priorities.',
-    difficulty: 'Medium',
-    timeEstimate: '10 min',
-    guidelines: [
-      'Keep it under 50 characters',
-      'Create a sense of value or benefit',
-      'Avoid spam trigger words like "free" or "guarantee"',
-      'Consider using personalization or curiosity'
-    ],
-    examplePrompt: 'What are some effective email subject line templates?',
-    wordLimit: 75
-  }
-};
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api, Challenge as ChallengeType } from '@/services/api';
 
 const Challenge = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [submission, setSubmission] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showHelpDialog, setShowHelpDialog] = useState(false);
+  const [scoringResult, setScoringResult] = useState<any>(null);
   
-  // Mock user data
-  const userData = {
-    level: 'Associate',
-    currentXp: 5350
-  };
+  // Fetch user profile data
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['userProfile'],
+    queryFn: api.getUserProfile,
+  });
 
-  // Mock challenge results
-  const mockResults = {
-    score: 87,
-    feedback: [
-      'Excellent use of curiosity to drive interest',
-      'Good length for email subject',
-      'Clear value proposition',
-      'Could improve by adding more urgency'
-    ],
-    improvement: 'Try incorporating words that create time sensitivity to increase open rates, such as "now," "today," or "introducing."',
-    xpGained: 150
-  };
+  // Fetch challenge data
+  const { 
+    data: challenge, 
+    isLoading: challengeLoading,
+    error: challengeError 
+  } = useQuery({
+    queryKey: ['challenge', id],
+    queryFn: () => api.getChallenge(id as string),
+    enabled: !!id,
+  });
+
+  // Next level data
+  const { data: nextLevel } = useQuery({
+    queryKey: ['nextLevel', userProfile?.level_id],
+    queryFn: () => api.getNextLevel(userProfile?.level_id || 1),
+    enabled: !!userProfile,
+  });
   
-  const challenge = mockChallengeData[Number(id) as keyof typeof mockChallengeData];
+  // Submit challenge mutation
+  const submitMutation = useMutation({
+    mutationFn: () => api.submitChallenge(id as string, submission),
+    onSuccess: (data) => {
+      setScoringResult(data.result);
+      setShowResults(true);
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['userChallenges'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Submission failed",
+        description: error instanceof Error ? error.message : "Please try again later",
+        variant: "destructive"
+      });
+    }
+  });
   
-  if (!challenge) {
-    return <div>Challenge not found</div>;
-  }
+  useEffect(() => {
+    if (challengeError) {
+      toast({
+        title: "Error loading challenge",
+        description: "Challenge could not be loaded. Please try again.",
+        variant: "destructive"
+      });
+      navigate('/dashboard');
+    }
+  }, [challengeError, toast, navigate]);
   
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -87,13 +98,7 @@ const Challenge = () => {
       return;
     }
     
-    setIsSubmitting(true);
-    
-    // Simulate API call delay
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowResults(true);
-    }, 2000);
+    submitMutation.mutate();
   };
   
   const handleGoBack = () => {
@@ -109,9 +114,43 @@ const Challenge = () => {
     }
   };
 
+  if (challengeLoading || profileLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar isLoggedIn={true} />
+        <main className="flex-1 container py-8 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-brand-400" />
+            <p className="text-lg text-gray-600">Loading challenge...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!challenge) {
+    return (
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar isLoggedIn={true} />
+        <main className="flex-1 container py-8">
+          <div className="text-center">
+            <p className="text-lg text-gray-600">Challenge not found</p>
+            <Button className="mt-4" onClick={() => navigate('/dashboard')}>
+              Back to Dashboard
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar isLoggedIn={true} currentXp={userData.currentXp} level={userData.level} />
+      <Navbar 
+        isLoggedIn={true} 
+        currentXp={userProfile?.current_xp} 
+        level={userProfile?.levels?.title} 
+      />
       
       <main className="flex-1 container py-8">
         <Button 
@@ -128,7 +167,7 @@ const Challenge = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center mb-2">
-                  <Badge className="bg-blue-100 text-blue-700">Copywriting</Badge>
+                  <Badge className="bg-blue-100 text-blue-700">{challenge.type}</Badge>
                   <Badge className={getDifficultyColor(challenge.difficulty)}>
                     {challenge.difficulty}
                   </Badge>
@@ -152,8 +191,8 @@ const Challenge = () => {
                       Your Response:
                     </label>
                     <div className="flex items-center text-sm text-gray-500">
-                      <span className={wordCount > challenge.wordLimit ? 'text-red-500' : ''}>
-                        {wordCount}/{challenge.wordLimit} words
+                      <span className={wordCount > challenge.word_limit ? 'text-red-500' : ''}>
+                        {wordCount}/{challenge.word_limit} words
                       </span>
                     </div>
                   </div>
@@ -164,6 +203,7 @@ const Challenge = () => {
                     className="min-h-[150px] text-base"
                     value={submission}
                     onChange={handleTextChange}
+                    disabled={submitMutation.isPending}
                   />
                 </div>
               </CardContent>
@@ -171,11 +211,11 @@ const Challenge = () => {
                 <Button 
                   className="w-full bg-brand-400 hover:bg-brand-500"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || wordCount > challenge.wordLimit}
+                  disabled={submitMutation.isPending || wordCount > challenge.word_limit}
                 >
-                  {isSubmitting ? (
+                  {submitMutation.isPending ? (
                     <>
-                      <span className="animate-spin mr-2">⏳</span>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Analyzing...
                     </>
                   ) : (
@@ -194,7 +234,7 @@ const Challenge = () => {
               <CardContent className="space-y-4">
                 <div className="flex items-center text-sm text-gray-500">
                   <Clock size={16} className="mr-2" />
-                  <span>Estimated time: {challenge.timeEstimate}</span>
+                  <span>Estimated time: {challenge.time_estimate}</span>
                 </div>
                 
                 <div>
@@ -208,7 +248,7 @@ const Challenge = () => {
                 
                 <div>
                   <h3 className="font-medium text-gray-900 mb-2 text-sm">Word limit:</h3>
-                  <p className="text-gray-700 text-sm">{challenge.wordLimit} words maximum</p>
+                  <p className="text-gray-700 text-sm">{challenge.word_limit} words maximum</p>
                 </div>
               </CardContent>
               <CardFooter>
@@ -235,7 +275,7 @@ const Challenge = () => {
             </DialogTitle>
             <DialogDescription className="text-center">
               <div className="inline-block bg-gray-100 px-3 py-1 rounded-full text-lg font-semibold text-brand-500">
-                Score: {mockResults.score}/100
+                Score: {scoringResult?.score || 0}/100
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -247,7 +287,7 @@ const Challenge = () => {
                 Strengths
               </h3>
               <ul className="list-disc list-inside space-y-1 text-gray-700 pl-2">
-                {mockResults.feedback.map((point, index) => (
+                {scoringResult?.feedback?.map((point: string, index: number) => (
                   <li key={index}>{point}</li>
                 ))}
               </ul>
@@ -255,7 +295,7 @@ const Challenge = () => {
             
             <div>
               <h3 className="font-medium text-gray-900 mb-2">To Improve:</h3>
-              <p className="text-gray-700">{mockResults.improvement}</p>
+              <p className="text-gray-700">{scoringResult?.improvement}</p>
             </div>
             
             <div className="bg-brand-50 p-4 rounded-lg">
@@ -264,11 +304,14 @@ const Challenge = () => {
                 XP Gained
               </h3>
               <div className="flex items-center">
-                <div className="font-semibold text-brand-500 mr-2">+{mockResults.xpGained} XP</div>
-                <Progress value={(userData.currentXp / 10000) * 100} className="h-2 flex-1" />
+                <div className="font-semibold text-brand-500 mr-2">+{scoringResult?.xp_gained} XP</div>
+                <Progress 
+                  value={((userProfile?.current_xp || 0) / (nextLevel?.required_xp || 1000)) * 100} 
+                  className="h-2 flex-1" 
+                />
               </div>
               <div className="text-sm text-gray-500 mt-1 text-right">
-                {userData.currentXp + mockResults.xpGained}/10000 to Senior Associate
+                {(userProfile?.current_xp || 0) + (scoringResult?.xp_gained || 0)}/{nextLevel?.required_xp || 1000} to {nextLevel?.title || 'Next Level'}
               </div>
             </div>
             
@@ -296,24 +339,25 @@ const Challenge = () => {
           
           <div className="space-y-4 py-4">
             <p className="text-gray-700">
-              Email subject lines should be concise and compelling. For this productivity app feature,
-              consider focusing on the benefit to the user - how will automatic calendar organization
-              make their life better?
+              For this {challenge.type} challenge, consider the specific audience and purpose. 
+              What action do you want the reader to take?
             </p>
             
             <p className="text-gray-700">
               Some possible approaches:
             </p>
             <ul className="list-disc list-inside text-gray-700">
-              <li>Focus on time savings</li>
-              <li>Highlight reduced stress</li>
-              <li>Emphasize increased productivity</li>
-              <li>Create curiosity about the new feature</li>
+              <li>Focus on benefits, not just features</li>
+              <li>Use clear, concise language</li>
+              <li>Create emotional connection</li>
+              <li>Include a call to action</li>
             </ul>
             
-            <p className="text-gray-700 italic">
-              Sample prompt: "{challenge.examplePrompt}"
-            </p>
+            {challenge.example_prompt && (
+              <p className="text-gray-700 italic">
+                "{challenge.example_prompt}"
+              </p>
+            )}
           </div>
           
           <Button onClick={() => setShowHelpDialog(false)}>Got it</Button>
