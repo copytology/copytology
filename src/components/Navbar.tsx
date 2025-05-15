@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { BookOpen, Trophy, User, LogOut, Home } from 'lucide-react';
+import { BookOpen, Trophy, User, LogOut } from 'lucide-react';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 interface NavbarProps {
   currentXp?: number;
   level?: string;
-  isLoggedIn?: boolean; // Add the isLoggedIn prop to the interface
+  isLoggedIn?: boolean;
 }
 
 const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) => {
@@ -28,7 +28,7 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
   
   const handleLogout = async () => {
     await signOut();
-    navigate('/');
+    // No need to navigate here as the AuthContext will handle it
   };
   
   const userInitial = user?.email?.[0].toUpperCase() || "U";

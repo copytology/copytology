@@ -9,29 +9,219 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      challenges: {
+        Row: {
+          brief: string
+          created_at: string | null
+          description: string
+          difficulty: string
+          example_prompt: string | null
+          guidelines: string[]
+          id: string
+          min_level_id: number | null
+          time_estimate: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          word_limit: number
+        }
+        Insert: {
+          brief: string
+          created_at?: string | null
+          description: string
+          difficulty: string
+          example_prompt?: string | null
+          guidelines: string[]
+          id?: string
+          min_level_id?: number | null
+          time_estimate?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          word_limit: number
+        }
+        Update: {
+          brief?: string
+          created_at?: string | null
+          description?: string
+          difficulty?: string
+          example_prompt?: string | null
+          guidelines?: string[]
+          id?: string
+          min_level_id?: number | null
+          time_estimate?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          word_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_min_level_id_fkey"
+            columns: ["min_level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      levels: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: number
+          required_xp: number
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          required_xp: number
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          required_xp?: number
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          current_xp: number | null
           full_name: string | null
           id: string
+          level_id: number | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          current_xp?: number | null
           full_name?: string | null
           id: string
+          level_id?: number | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          current_xp?: number | null
           full_name?: string | null
           id?: string
+          level_id?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          challenge_id: string
+          created_at: string | null
+          feedback: string[]
+          id: string
+          improvement_tip: string | null
+          response: string
+          score: number
+          user_id: string
+          xp_gained: number
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string | null
+          feedback: string[]
+          id?: string
+          improvement_tip?: string | null
+          response: string
+          score: number
+          user_id: string
+          xp_gained: number
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string | null
+          feedback?: string[]
+          id?: string
+          improvement_tip?: string | null
+          response?: string
+          score?: number
+          user_id?: string
+          xp_gained?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_challenges: {
+        Row: {
+          challenge_id: string
+          created_at: string | null
+          id: string
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string | null
+          id?: string
+          status: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_challenges_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_challenges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
