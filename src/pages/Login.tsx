@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,18 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  
-  // Only redirect once, and only if user state is stable (not during initial load)
-  useEffect(() => {
-    if (user && !loading) {
-      const from = location.state?.from || '/dashboard';
-      navigate(from, { replace: true });
-    }
-  }, [user, loading, navigate, location.state]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,14 +31,23 @@ const Login = () => {
       return;
     }
     
-    await signIn(email, password);
+    try {
+      setIsSubmitting(true);
+      await signIn(email, password);
+      // Navigation will be handled by AuthContext
+    } catch (error) {
+      // Error is already handled in the signIn function
+      console.error("Login failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
-  // Only show loading screen if explicitly logging in, not on initial page load
+  // Don't show loading screen on initial page load, only while processing login
   if (loading && user) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8ACE00]"></div>
       </div>
     );
   }
@@ -81,7 +84,7 @@ const Login = () => {
                   <label htmlFor="password" className="text-sm font-medium">
                     Password
                   </label>
-                  <Link to="/forgot-password" className="text-sm text-brand-500 hover:text-brand-600">
+                  <Link to="/forgot-password" className="text-sm text-[#8ACE00] hover:text-[#78b500]">
                     Forgot password?
                   </Link>
                 </div>
@@ -95,8 +98,8 @@ const Login = () => {
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-[#8ACE00] hover:bg-[#78b500]" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign In'}
+              <Button type="submit" className="w-full bg-[#8ACE00] hover:bg-[#78b500]" disabled={isSubmitting}>
+                {isSubmitting ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
             

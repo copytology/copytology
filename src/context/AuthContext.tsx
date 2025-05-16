@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,11 +19,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authChangeProcessed, setAuthChangeProcessed] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Handle initial session loading and auth state changes
   useEffect(() => {
     let mounted = true;
     
@@ -33,21 +33,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, currentSession) => {
         if (!mounted) return;
 
-        // Simple state updates first, no navigation yet
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setAuthChangeProcessed(true);
+        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+        } else if (event === 'SIGNED_OUT') {
+          setSession(null);
+          setUser(null);
+        }
       }
     );
 
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      if (!mounted) return;
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
-      setAuthChangeProcessed(true);
-    });
+    // Check for initial session
+    const getInitialSession = async () => {
+      try {
+        setLoading(true);
+        const { data } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          setInitialLoadComplete(true);
+        }
+      } catch (error) {
+        console.error('Error getting initial session:', error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    getInitialSession();
 
     return () => {
       mounted = false;
@@ -55,44 +71,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
   
-  // Handle navigation in a separate effect to avoid loops
+  // Handle navigation separately to avoid loops
   useEffect(() => {
-    // Skip if auth changes haven't been processed yet or still loading initial state
-    if (!authChangeProcessed || loading) return;
+    if (!initialLoadComplete || loading) return;
     
-    // Get the current path without query params
     const currentPath = location.pathname;
+    const isAuthPage = currentPath === '/login' || currentPath === '/register';
     
-    if (session?.user) {
-      // User is signed in
-      if (currentPath === '/login' || currentPath === '/register') {
-        // Only show the toast once when they sign in from login/register pages
-        toast({
-          title: "Signed in successfully",
-          description: "Welcome back!",
-        });
-          
-        // Get the intended destination or default to dashboard
-        const from = location.state?.from || '/dashboard';
-        navigate(from, { replace: true });
+    // Delay navigation decisions slightly to prevent quick state changes causing loops
+    const timer = setTimeout(() => {
+      if (user) {
+        // User is signed in
+        if (isAuthPage) {
+          const from = location.state?.from || '/dashboard';
+          navigate(from, { replace: true });
+        }
+      } else if (initialLoadComplete && !loading) {
+        // User is not signed in and we're done loading
+        if (currentPath !== '/' && 
+            !isAuthPage &&
+            currentPath !== '/about') {
+          navigate('/login', { 
+            replace: true,
+            state: { from: currentPath }
+          });
+        }
       }
-    } else if (authChangeProcessed && !loading && !session) {
-      // User is signed out, but only navigate if they're on a protected route
-      if (currentPath !== '/' && 
-          currentPath !== '/login' && 
-          currentPath !== '/register' &&
-          currentPath !== '/about') {
-        
-        toast({
-          title: "Signed out successfully",
-          description: "See you soon!",
-        });
-        
-        // Navigate to home page
-        navigate('/', { replace: true });
-      }
-    }
-  }, [authChangeProcessed, session, loading, navigate, location.pathname]);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, [user, initialLoadComplete, loading, navigate, location.pathname, location.state]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -102,13 +110,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) {
         throw error;
       }
-      // No need to navigate here, the onAuthStateChange will handle it
     } catch (error: any) {
       toast({
         title: "Error signing in",
         description: error.message,
         variant: "destructive",
       });
+      throw error; // Re-throw to handle in the component
     } finally {
       setLoading(false);
     }

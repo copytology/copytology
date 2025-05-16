@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 
@@ -11,7 +11,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation();
   
-  // Only show the loading indicator for a genuine loading state
+  // Show loading indicator only if truly loading and not just an unauthenticated state
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -22,11 +22,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
   // If not loading and no user, redirect to login
   if (!user) {
-    // Redirect to login but save the intended destination
+    // Store the current path for post-login redirection
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
-  // User is authenticated, show the protected content
+  // User is authenticated, render the protected content
   return <>{children}</>;
 };
 
