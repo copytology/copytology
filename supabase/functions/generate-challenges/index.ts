@@ -75,7 +75,7 @@ serve(async (req) => {
     8. Word limit (appropriate for the task)
     9. Example prompt (a hint that might help the user)
     
-    Format the response as a valid JSON array of challenge objects.`;
+    Return ONLY a valid JSON array of challenge objects without any markdown formatting or code blocks.`;
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -86,7 +86,10 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that generates writing challenges.' },
+          { 
+            role: 'system', 
+            content: 'You are a helpful assistant that generates writing challenges. Return only valid JSON without markdown formatting.'
+          },
           { role: 'user', content: challengePrompt }
         ],
         temperature: 0.7,
@@ -99,9 +102,19 @@ serve(async (req) => {
     try {
       // Extract and parse the JSON from the response
       const responseText = openaiData.choices[0].message.content;
-      challenges = JSON.parse(responseText);
+      
+      // Clean the response text to handle potential markdown formatting
+      const cleanedText = responseText
+        .replace(/```json/g, '') // Remove ```json
+        .replace(/```/g, '')     // Remove closing ```
+        .trim();                 // Remove extra whitespace
+      
+      challenges = JSON.parse(cleanedText);
+      
+      console.log("Successfully parsed challenges:", challenges.length);
     } catch (e) {
       console.error('Error parsing OpenAI response:', e);
+      console.log('Raw response content:', openaiData.choices[0].message.content);
       return new Response(JSON.stringify({ error: 'Failed to parse challenges' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
