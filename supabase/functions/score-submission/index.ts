@@ -16,6 +16,16 @@ serve(async (req) => {
   try {
     const { challengeId, submission } = await req.json();
     
+    // Validate input
+    if (!challengeId || !submission) {
+      return new Response(JSON.stringify({ 
+        error: 'Missing required parameters: challengeId and submission are required' 
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -56,6 +66,12 @@ serve(async (req) => {
     
     // Call OpenAI to score the submission
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openaiApiKey) {
+      return new Response(JSON.stringify({ error: 'OpenAI API key not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const scoringPrompt = `
     You are an expert copywriting teacher evaluating a student's submission.
@@ -105,6 +121,15 @@ serve(async (req) => {
       }),
     });
     
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("OpenAI API error:", errorText);
+      return new Response(JSON.stringify({ error: 'Failed to score submission' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     const openaiData = await response.json();
     let scoring;
     
@@ -135,6 +160,7 @@ serve(async (req) => {
       .select();
     
     if (submissionError) {
+      console.error("Error saving submission:", submissionError);
       return new Response(JSON.stringify({ error: 'Failed to save submission' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -142,20 +168,29 @@ serve(async (req) => {
     }
     
     // Update user XP and level
-    const { data: profileData } = await supabaseClient
+    const { data: profileData, error: profileError } = await supabaseClient
       .from('profiles')
       .select('current_xp, level_id')
       .eq('id', user.id)
       .single();
     
+    if (profileError) {
+      console.error("Error fetching profile:", profileError);
+      // Don't fail the whole request, just log the error
+    }
+    
     if (profileData) {
       const newXp = profileData.current_xp + scoring.xp_gained;
       
       // Get next level requirements
-      const { data: levels } = await supabaseClient
+      const { data: levels, error: levelsError } = await supabaseClient
         .from('levels')
         .select('id, required_xp')
         .order('required_xp', { ascending: true });
+      
+      if (levelsError) {
+        console.error("Error fetching levels:", levelsError);
+      }
       
       let newLevelId = profileData.level_id;
       
@@ -169,32 +204,40 @@ serve(async (req) => {
       }
       
       // Update profile
-      await supabaseClient
+      const { error: updateError } = await supabaseClient
         .from('profiles')
         .update({
           current_xp: newXp,
           level_id: newLevelId
         })
         .eq('id', user.id);
+        
+      if (updateError) {
+        console.error("Error updating profile:", updateError);
+      }
     }
     
     // Update challenge status
-    await supabaseClient
+    const { error: statusError } = await supabaseClient
       .from('user_challenges')
       .update({ status: 'completed' })
       .eq('user_id', user.id)
       .eq('challenge_id', challengeId);
+      
+    if (statusError) {
+      console.error("Error updating challenge status:", statusError);
+    }
     
     return new Response(JSON.stringify({
       success: true,
       result: scoring,
-      submission_id: submissionData[0].id
+      submission_id: submissionData?.[0]?.id
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('Error in score-submission function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error.message || 'An unknown error occurred' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

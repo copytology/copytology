@@ -64,6 +64,9 @@ export const api = {
   
   // Challenges
   async getUserChallenges() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
     const { data, error } = await supabase
       .from('user_challenges')
       .select(`
@@ -71,6 +74,7 @@ export const api = {
         status,
         challenge:challenge_id(*)
       `)
+      .eq('user_id', user.id)
       .eq('status', 'active');
       
     if (error) throw error;
@@ -103,17 +107,24 @@ export const api = {
       body: { challengeId, submission }
     });
     
-    if (error) throw error;
+    if (error) {
+      console.error("Submission error:", error);
+      throw error;
+    }
     return data;
   },
   
   async getUserSubmissions() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
     const { data, error } = await supabase
       .from('submissions')
       .select(`
         *,
         challenge:challenge_id(title, type, difficulty)
       `)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
       
     if (error) throw error;
