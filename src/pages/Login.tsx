@@ -1,6 +1,5 @@
-
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,18 +10,20 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const { signIn, user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   
+  // Only redirect once, and only if user state is stable (not during initial load)
   useEffect(() => {
-    // Redirect to home if already logged in
-    if (user) {
-      navigate('/dashboard');
+    if (user && !loading) {
+      const from = location.state?.from || '/dashboard';
+      navigate(from, { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate, location.state]);
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +40,7 @@ const Login = () => {
     await signIn(email, password);
   };
   
+  // Only show loading screen if explicitly logging in, not on initial page load
   if (loading && user) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -93,7 +95,7 @@ const Login = () => {
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-brand-400 hover:bg-brand-500" disabled={loading}>
+              <Button type="submit" className="w-full bg-[#8ACE00] hover:bg-[#78b500]" disabled={loading}>
                 {loading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
@@ -121,7 +123,7 @@ const Login = () => {
           <CardFooter className="flex justify-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{' '}
-              <Link to="/register" className="text-brand-500 hover:text-brand-600 font-medium">
+              <Link to="/register" className="text-[#8ACE00] hover:text-[#78b500] font-medium">
                 Sign up
               </Link>
             </p>

@@ -37,8 +37,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setAuthChangeProcessed(true);
-        
-        // Only handle navigation in a separate effect that depends on authChangeProcessed
       }
     );
 
@@ -59,12 +57,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Handle navigation in a separate effect to avoid loops
   useEffect(() => {
-    // Skip if auth changes haven't been processed yet
-    if (!authChangeProcessed) return;
+    // Skip if auth changes haven't been processed yet or still loading initial state
+    if (!authChangeProcessed || loading) return;
+    
+    // Get the current path without query params
+    const currentPath = location.pathname;
     
     if (session?.user) {
-      // User is signed in, show welcome toast only once when they sign in
-      if (location.pathname === '/login' || location.pathname === '/register') {
+      // User is signed in
+      if (currentPath === '/login' || currentPath === '/register') {
+        // Only show the toast once when they sign in from login/register pages
         toast({
           title: "Signed in successfully",
           description: "Welcome back!",
@@ -75,20 +77,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate(from, { replace: true });
       }
     } else if (authChangeProcessed && !loading && !session) {
-      // User was signed out, show goodbye toast
-      if (location.pathname !== '/' && 
-          location.pathname !== '/login' && 
-          location.pathname !== '/register' &&
-          location.pathname !== '/about') {
+      // User is signed out, but only navigate if they're on a protected route
+      if (currentPath !== '/' && 
+          currentPath !== '/login' && 
+          currentPath !== '/register' &&
+          currentPath !== '/about') {
+        
         toast({
           title: "Signed out successfully",
           description: "See you soon!",
         });
+        
         // Navigate to home page
         navigate('/', { replace: true });
       }
     }
-  }, [authChangeProcessed, session, loading, navigate, location, toast]);
+  }, [authChangeProcessed, session, loading, navigate, location.pathname]);
 
   const signIn = async (email: string, password: string) => {
     try {
