@@ -6,11 +6,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Calendar, ArrowLeft } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogHeader, 
+  DialogTitle,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Loader2, Calendar, ArrowLeft, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, Submission } from '@/services/api';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -18,9 +35,10 @@ interface DetailDialogProps {
   submission: Submission | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onDelete: () => void;
 }
 
-const DetailDialog = ({ submission, open, onOpenChange }: DetailDialogProps) => {
+const DetailDialog = ({ submission, open, onOpenChange, onDelete }: DetailDialogProps) => {
   if (!submission) return null;
   
   return (
@@ -68,6 +86,16 @@ const DetailDialog = ({ submission, open, onOpenChange }: DetailDialogProps) => 
             <p className="text-gray-700">{submission.improvement_tip}</p>
           </div>
         </div>
+
+        <DialogFooter>
+          <Button 
+            variant="destructive" 
+            onClick={onDelete}
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} /> Delete Submission
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
@@ -76,9 +104,11 @@ const DetailDialog = ({ submission, open, onOpenChange }: DetailDialogProps) => 
 const History = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   
   const { data: userProfile } = useQuery({
     queryKey: ['userProfile'],
@@ -103,6 +133,27 @@ const History = () => {
     }
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: ({ id, xp }: { id: string, xp: number }) => api.deleteSubmission(id, xp),
+    onSuccess: () => {
+      toast({
+        title: "Submission deleted",
+        description: "Your submission has been deleted and XP has been adjusted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      setDetailOpen(false);
+      setDeleteDialogOpen(false);
+    },
+    onError: (err: Error) => {
+      toast({
+        title: "Error deleting submission",
+        description: err.message || "Please try again later",
+        variant: "destructive"
+      });
+    }
+  });
+
   const filteredSubmissions = submissions?.filter(submission => {
     if (activeTab === 'all') return true;
     return submission.challenge?.type === activeTab;
@@ -111,6 +162,21 @@ const History = () => {
   const viewSubmission = (submission: Submission) => {
     setSelectedSubmission(submission);
     setDetailOpen(true);
+  };
+
+  const handleDeleteClick = () => {
+    if (selectedSubmission) {
+      setDeleteDialogOpen(true);
+    }
+  };
+
+  const confirmDelete = () => {
+    if (selectedSubmission) {
+      deleteMutation.mutate({ 
+        id: selectedSubmission.id, 
+        xp: selectedSubmission.xp_gained 
+      });
+    }
   };
 
   return (
@@ -212,8 +278,37 @@ const History = () => {
       <DetailDialog 
         submission={selectedSubmission} 
         open={detailOpen} 
-        onOpenChange={setDetailOpen} 
+        onOpenChange={setDetailOpen}
+        onDelete={handleDeleteClick} 
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this submission?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deleting this submission will remove {selectedSubmission?.xp_gained} XP from your total.
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <Footer />
     </div>

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Challenge {
@@ -129,6 +128,20 @@ export const api = {
       
     if (error) throw error;
     return data as Submission[];
+  },
+  
+  async deleteSubmission(submissionId: string, xpToSubtract: number) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    
+    // Start a transaction to delete submission and update user XP
+    const { data, error } = await supabase.rpc('delete_submission_and_update_xp', {
+      submission_id: submissionId,
+      xp_amount: xpToSubtract
+    });
+    
+    if (error) throw error;
+    return data;
   },
   
   // Levels
