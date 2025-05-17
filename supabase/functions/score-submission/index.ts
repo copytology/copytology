@@ -97,7 +97,7 @@ serve(async (req) => {
     3. One specific improvement suggestion
     4. XP to award (between 50-200, based on quality and difficulty)
     
-    Format your response as a JSON object with:
+    Respond with ONLY a valid JSON object with:
     {
       "score": [number],
       "feedback": [array of strings],
@@ -114,7 +114,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant that evaluates writing submissions.' },
+          { role: 'system', content: 'You are a helpful assistant that evaluates writing submissions. Return ONLY valid JSON without any markdown formatting, code blocks, or additional text.' },
           { role: 'user', content: scoringPrompt }
         ],
         temperature: 0.3,
@@ -134,12 +134,24 @@ serve(async (req) => {
     let scoring;
     
     try {
-      // Extract and parse the JSON from the response
+      // Extract and parse the JSON from the response, handling possible markdown formatting
       const responseText = openaiData.choices[0].message.content;
-      scoring = JSON.parse(responseText);
+      
+      // Clean up the response if it contains markdown code blocks or other formatting
+      const jsonContent = responseText.replace(/```json|```|<\/?[^>]+(>|$)/g, '').trim();
+      
+      console.log("Cleaned JSON response:", jsonContent);
+      scoring = JSON.parse(jsonContent);
+      
+      // Validate the expected structure
+      if (!scoring.score || !Array.isArray(scoring.feedback) || !scoring.improvement || !scoring.xp_gained) {
+        throw new Error("Response missing required fields");
+      }
+      
     } catch (e) {
       console.error('Error parsing OpenAI response:', e);
-      return new Response(JSON.stringify({ error: 'Failed to parse scoring' }), {
+      console.error('Raw response:', openaiData.choices[0].message.content);
+      return new Response(JSON.stringify({ error: 'Failed to parse scoring response' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
