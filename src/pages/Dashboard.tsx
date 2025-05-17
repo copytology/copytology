@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -11,6 +11,8 @@ import { ArrowRight, Clock, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
+
+const CARDS_PER_CATEGORY = 6;
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -38,6 +40,25 @@ const Dashboard = () => {
     retry: 1
   });
 
+  // Check if we need to generate more challenges
+  useEffect(() => {
+    if (!challengesLoading && challenges) {
+      const challengesByType = {
+        copywriting: challenges.filter(c => c.type === 'copywriting'),
+        content: challenges.filter(c => c.type === 'content'),
+        uxwriting: challenges.filter(c => c.type === 'uxwriting')
+      };
+      
+      const needsRefresh = Object.values(challengesByType).some(
+        typeArray => typeArray.length < CARDS_PER_CATEGORY
+      );
+      
+      if (needsRefresh) {
+        refreshMutation.mutate();
+      }
+    }
+  }, [challenges, challengesLoading]);
+
   // Refresh challenges mutation
   const refreshMutation = useMutation({
     mutationFn: api.refreshChallenges,
@@ -58,11 +79,22 @@ const Dashboard = () => {
     }
   });
 
-  // Filter challenges based on active tab
-  const filteredChallenges = challenges?.filter(challenge => {
-    if (activeTab === 'all') return true;
-    return challenge.type === activeTab;
-  }) || [];
+  // Filter challenges based on active tab and limit to 6 per type
+  const filteredChallenges = React.useMemo(() => {
+    if (!challenges) return [];
+    
+    if (activeTab === 'all') {
+      // Get 6 challenges of each type for the "All" tab
+      const copywritingChallenges = challenges.filter(c => c.type === 'copywriting').slice(0, CARDS_PER_CATEGORY);
+      const contentChallenges = challenges.filter(c => c.type === 'content').slice(0, CARDS_PER_CATEGORY);
+      const uxwritingChallenges = challenges.filter(c => c.type === 'uxwriting').slice(0, CARDS_PER_CATEGORY);
+      
+      return [...copywritingChallenges, ...contentChallenges, ...uxwritingChallenges];
+    }
+    
+    // For specific tabs, limit to 6 challenges
+    return challenges.filter(challenge => challenge.type === activeTab).slice(0, CARDS_PER_CATEGORY);
+  }, [challenges, activeTab]);
 
   const handleRefreshChallenges = () => {
     refreshMutation.mutate();
