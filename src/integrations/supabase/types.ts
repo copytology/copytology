@@ -228,7 +228,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_submission_and_update_xp: {
+        Args: { submission_id: string; xp_amount: number }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
