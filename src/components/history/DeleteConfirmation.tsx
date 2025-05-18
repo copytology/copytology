@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,18 +29,19 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
   isDeleting,
   onConfirm,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure you want to delete this submission?</AlertDialogTitle>
+          <AlertDialogTitle>{t('history.delete.confirm.title')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Deleting this submission will remove {xpToSubtract} XP from your total.
-            This action cannot be undone.
+            {t('history.delete.confirm.desc').replace('{xp}', String(xpToSubtract))}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('history.delete.confirm.cancel')}</AlertDialogCancel>
           <AlertDialogAction 
             onClick={onConfirm}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -47,10 +49,10 @@ const DeleteConfirmation: React.FC<DeleteConfirmationProps> = ({
             {isDeleting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Deleting...
+                {t('history.delete.deleting')}
               </>
             ) : (
-              "Delete"
+              t('history.delete.confirm.delete')
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

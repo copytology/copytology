@@ -11,6 +11,7 @@ import { ArrowRight, Clock, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 const CARDS_PER_CATEGORY = 6;
 
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
+  const { t, language } = useLanguage();
 
   // Fetch user profile
   const { 
@@ -35,8 +37,8 @@ const Dashboard = () => {
     isLoading: challengesLoading,
     error: challengesError
   } = useQuery({
-    queryKey: ['userChallenges'],
-    queryFn: api.getUserChallenges,
+    queryKey: ['userChallenges', language],
+    queryFn: () => api.getUserChallenges(language),
     retry: 1
   });
 
@@ -61,14 +63,14 @@ const Dashboard = () => {
 
   // Refresh challenges mutation
   const refreshMutation = useMutation({
-    mutationFn: api.refreshChallenges,
+    mutationFn: () => api.refreshChallenges(language),
     onSuccess: () => {
       toast({
-        title: "Challenges refreshed!",
+        title: t('dashboard.title'),
         description: "New challenges are now available.",
       });
       // Refresh challenges data
-      queryClient.invalidateQueries({ queryKey: ['userChallenges'] });
+      queryClient.invalidateQueries({ queryKey: ['userChallenges', language] });
     },
     onError: (error) => {
       toast({
@@ -119,7 +121,7 @@ const Dashboard = () => {
       
       <main className="flex-1 container py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Your Challenges</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{t('dashboard.title')}</h1>
           <Button 
             onClick={handleRefreshChallenges} 
             disabled={refreshMutation.isPending}
@@ -128,12 +130,12 @@ const Dashboard = () => {
             {refreshMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                {t('dashboard.generating')}
               </>
             ) : (
               <>
                 <RefreshCw size={16} className="mr-2" />
-                Refresh Challenges
+                {t('dashboard.refresh')}
               </>
             )}
           </Button>
@@ -141,26 +143,26 @@ const Dashboard = () => {
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList>
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="copywriting">Copywriting</TabsTrigger>
-            <TabsTrigger value="content">Content</TabsTrigger>
-            <TabsTrigger value="uxwriting">UX Writing</TabsTrigger>
+            <TabsTrigger value="all">{t('dashboard.all')}</TabsTrigger>
+            <TabsTrigger value="copywriting">{t('dashboard.copywriting')}</TabsTrigger>
+            <TabsTrigger value="content">{t('dashboard.content')}</TabsTrigger>
+            <TabsTrigger value="uxwriting">{t('dashboard.uxwriting')}</TabsTrigger>
           </TabsList>
         </Tabs>
         
         {(challengesLoading || profileLoading) ? (
           <div className="text-center py-12">
             <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-brand-400" />
-            <p className="text-lg text-gray-600">Loading challenges...</p>
+            <p className="text-lg text-gray-600">{t('dashboard.loading')}</p>
           </div>
         ) : challengesError ? (
           <div className="text-center py-12">
-            <p className="text-lg text-gray-600">Error loading challenges.</p>
+            <p className="text-lg text-gray-600">{t('dashboard.error')}</p>
             <Button 
-              onClick={() => queryClient.invalidateQueries({ queryKey: ['userChallenges'] })}
+              onClick={() => queryClient.invalidateQueries({ queryKey: ['userChallenges', language] })}
               className="mt-4"
             >
-              Try Again
+              {t('dashboard.try.again')}
             </Button>
           </div>
         ) : filteredChallenges.length > 0 ? (
@@ -169,7 +171,7 @@ const Dashboard = () => {
               <Card key={challenge.id} className="hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center mb-2">
-                    <Badge className="bg-blue-100 text-blue-700">{challenge.type}</Badge>
+                    <Badge className="bg-blue-100 text-blue-700">{t(`dashboard.${challenge.type}`)}</Badge>
                     <Badge className={getDifficultyColor(challenge.difficulty)}>
                       {challenge.difficulty}
                     </Badge>
@@ -189,7 +191,7 @@ const Dashboard = () => {
                     variant="outline"
                     onClick={() => navigate(`/challenge/${challenge.id}`)}
                   >
-                    Start Challenge
+                    {t('dashboard.start.challenge')}
                     <ArrowRight size={16} className="ml-2" />
                   </Button>
                 </CardFooter>
@@ -198,15 +200,15 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-100">
-            <p className="text-lg text-gray-600 mb-4">No challenges available.</p>
+            <p className="text-lg text-gray-600 mb-4">{t('dashboard.no.challenges')}</p>
             <Button onClick={handleRefreshChallenges} className="bg-brand-400 hover:bg-brand-500 text-white">
               {refreshMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  {t('dashboard.generating')}
                 </>
               ) : (
-                "Generate New Challenges"
+                t('dashboard.generate.new')
               )}
             </Button>
           </div>

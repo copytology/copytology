@@ -63,7 +63,7 @@ export const api = {
   },
   
   // Challenges
-  async getUserChallenges() {
+  async getUserChallenges(language = 'en') {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
     
@@ -78,19 +78,52 @@ export const api = {
       .eq('status', 'active');
       
     if (error) throw error;
-    return data.map(item => ({
+    
+    const challenges = data.map(item => ({
       ...item.challenge,
       status: item.status
     })) as Challenge[];
+    
+    // No need to translate if already in English or if preserving original language
+    if (language === 'en') {
+      return challenges;
+    }
+    
+    // For Indonesian, translate challenge titles, descriptions and briefs
+    if (language === 'id') {
+      // This would ideally call a translation service or get pre-translated content
+      // For now, we'll simulate translation with simple dictionary replacements
+      return challenges.map(challenge => {
+        const translatedType = challenge.type === 'copywriting' 
+          ? 'copywriting' 
+          : challenge.type === 'content' 
+            ? 'konten' 
+            : 'UX writing';
+            
+        return {
+          ...challenge,
+          title: translate(challenge.title, 'id'),
+          description: translate(challenge.description, 'id'),
+          brief: translate(challenge.brief, 'id'),
+          guidelines: challenge.guidelines.map(g => translate(g, 'id')),
+          example_prompt: challenge.example_prompt ? translate(challenge.example_prompt, 'id') : undefined,
+          time_estimate: challenge.time_estimate.replace('min', 'menit'),
+        };
+      });
+    }
+    
+    return challenges;
   },
   
-  async refreshChallenges() {
-    const { data, error } = await supabase.functions.invoke('generate-challenges');
+  async refreshChallenges(language = 'en') {
+    const { data, error } = await supabase.functions.invoke('generate-challenges', {
+      body: { language }
+    });
     if (error) throw error;
     return data;
   },
   
-  async getChallenge(id: string) {
+  async getChallenge(id: string, language = 'en') {
     const { data, error } = await supabase
       .from('challenges')
       .select('*')
@@ -98,13 +131,34 @@ export const api = {
       .single();
       
     if (error) throw error;
-    return data as Challenge;
+    
+    const challenge = data as Challenge;
+    
+    // No translation needed for English
+    if (language === 'en') {
+      return challenge;
+    }
+    
+    // For Indonesian, translate challenge content
+    if (language === 'id') {
+      return {
+        ...challenge,
+        title: translate(challenge.title, 'id'),
+        description: translate(challenge.description, 'id'),
+        brief: translate(challenge.brief, 'id'),
+        guidelines: challenge.guidelines.map(g => translate(g, 'id')),
+        example_prompt: challenge.example_prompt ? translate(challenge.example_prompt, 'id') : undefined,
+        time_estimate: challenge.time_estimate.replace('min', 'menit'),
+      };
+    }
+    
+    return challenge;
   },
   
   // Submissions
-  async submitChallenge(challengeId: string, submission: string) {
+  async submitChallenge(challengeId: string, submission: string, language = 'en') {
     const { data, error } = await supabase.functions.invoke('score-submission', {
-      body: { challengeId, submission }
+      body: { challengeId, submission, language }
     });
     
     if (error) {
@@ -169,3 +223,32 @@ export const api = {
     return data as Level;
   }
 };
+
+// Simple translation function (placeholder for real translation service)
+function translate(text: string, targetLanguage: string): string {
+  if (targetLanguage === 'en') return text;
+  
+  // This is a very simplified approach - in a real app you would use a proper translation API
+  // or have pre-translated content stored in the database
+  if (targetLanguage === 'id') {
+    // Just a few example replacements to simulate translation
+    return text
+      .replace(/Write a/gi, 'Tulis sebuah')
+      .replace(/Create a/gi, 'Buat sebuah')
+      .replace(/Develop a/gi, 'Kembangkan sebuah')
+      .replace(/email/gi, 'surel')
+      .replace(/content/gi, 'konten')
+      .replace(/user/gi, 'pengguna')
+      .replace(/customer/gi, 'pelanggan')
+      .replace(/product/gi, 'produk')
+      .replace(/service/gi, 'layanan')
+      .replace(/website/gi, 'situs web')
+      .replace(/application/gi, 'aplikasi')
+      .replace(/features/gi, 'fitur')
+      .replace(/benefits/gi, 'manfaat')
+      .replace(/minutes/gi, 'menit')
+      .replace(/words/gi, 'kata');
+  }
+  
+  return text;
+}
