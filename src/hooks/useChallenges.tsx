@@ -12,11 +12,12 @@ export const useChallenges = (activeTab: string) => {
   const queryClient = useQueryClient();
   const { t, language } = useLanguage();
 
-  // Fetch user challenges
+  // Fetch user challenges with language as part of the key
   const { 
     data: challenges,
     isLoading: challengesLoading,
-    error: challengesError
+    error: challengesError,
+    isFetching
   } = useQuery({
     queryKey: ['userChallenges', language],
     queryFn: () => api.getUserChallenges(language),
@@ -29,7 +30,7 @@ export const useChallenges = (activeTab: string) => {
     onSuccess: () => {
       toast({
         title: t('dashboard.title'),
-        description: "New challenges are now available.",
+        description: t('dashboard.challenges.refreshed'),
       });
       // Refresh challenges data
       queryClient.invalidateQueries({ queryKey: ['userChallenges', language] });
@@ -60,7 +61,7 @@ export const useChallenges = (activeTab: string) => {
         refreshMutation.mutate();
       }
     }
-  }, [challenges, challengesLoading]);
+  }, [challenges, challengesLoading, language]);
 
   // Filter challenges based on active tab and limit to 6 per type
   const filteredChallenges = (() => {
@@ -87,7 +88,7 @@ export const useChallenges = (activeTab: string) => {
     challenges: filteredChallenges,
     isLoading: challengesLoading,
     error: challengesError,
-    isPending: refreshMutation.isPending,
+    isPending: refreshMutation.isPending || isFetching,
     handleRefreshChallenges
   };
 };

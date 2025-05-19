@@ -1,5 +1,5 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Language = 'en' | 'id';
 
@@ -39,6 +39,7 @@ export const translations = {
     'dashboard.no.challenges': 'No challenges available.',
     'dashboard.generate.new': 'Generate New Challenges',
     'dashboard.start.challenge': 'Start Challenge',
+    'dashboard.challenges.refreshed': 'New challenges are now available.',
     
     // Challenge
     'challenge.back': 'Back to Dashboard',
@@ -150,6 +151,7 @@ export const translations = {
     'dashboard.no.challenges': 'Tidak ada tantangan tersedia.',
     'dashboard.generate.new': 'Hasilkan Tantangan Baru',
     'dashboard.start.challenge': 'Mulai Tantangan',
+    'dashboard.challenges.refreshed': 'Tantangan baru sekarang tersedia.',
     
     // Challenge
     'challenge.back': 'Kembali ke Dasbor',
@@ -237,6 +239,7 @@ export const translations = {
 };
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const queryClient = useQueryClient();
   const [language, setLanguageState] = useState<Language>(() => {
     const savedLanguage = localStorage.getItem('language');
     return (savedLanguage as Language) || 'en';
@@ -247,7 +250,13 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, [language]);
 
   const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
+    // Only perform the update if the language is actually changing
+    if (lang !== language) {
+      setLanguageState(lang);
+      
+      // Invalidate and refetch challenges when language changes
+      queryClient.invalidateQueries({ queryKey: ['userChallenges'] });
+    }
   };
 
   const t = (key: string) => {

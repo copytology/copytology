@@ -54,7 +54,7 @@ const Dashboard = () => {
         
         <ChallengesList
           challenges={filteredChallenges}
-          isLoading={challengesLoading || profileLoading}
+          isLoading={challengesLoading || profileLoading || isPending}
           error={challengesError}
           isPending={isPending}
           handleRefreshChallenges={handleRefreshChallenges}
