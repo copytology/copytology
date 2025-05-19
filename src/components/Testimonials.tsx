@@ -2,29 +2,35 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Testimonials = () => {
+  const { t, language } = useLanguage();
+  
   const testimonials = [
     {
       name: "Sarah J.",
-      position: "Former Teacher, Now Content Writer",
-      quote: "Copytology gave me the confidence to switch careers. The challenges felt like real-world assignments, and the AI feedback helped me improve quickly.",
+      position: language === 'en' ? "Former Teacher, Now Content Writer" : "Mantan Guru, Sekarang Penulis Konten",
+      quoteEn: "Copytology gave me the confidence to switch careers. The challenges felt like real-world assignments, and the AI feedback helped me improve quickly.",
+      quoteId: "Copytology memberi saya kepercayaan diri untuk beralih karir. Tantangannya terasa seperti tugas dunia nyata, dan umpan balik AI membantu saya meningkat dengan cepat.",
       stars: 5,
-      level: "Team Lead"
+      level: language === 'en' ? "Team Lead" : "Pemimpin Tim"
     },
     {
       name: "Michael T.",
-      position: "IT Professional to UX Writer",
-      quote: "After 12 years in IT, I wanted a change. The specialized UX writing challenges helped me understand the nuances of the field and build a focused portfolio.",
+      position: language === 'en' ? "IT Professional to UX Writer" : "Profesional TI menjadi Penulis UX",
+      quoteEn: "After 12 years in IT, I wanted a change. The specialized UX writing challenges helped me understand the nuances of the field and build a focused portfolio.",
+      quoteId: "Setelah 12 tahun di TI, saya ingin perubahan. Tantangan penulisan UX khusus membantu saya memahami nuansa bidang ini dan membangun portofolio yang fokus.",
       stars: 5,
-      level: "Senior Associate"
+      level: language === 'en' ? "Senior Associate" : "Associate Senior"
     },
     {
       name: "Priya K.",
-      position: "Marketing Coordinator",
-      quote: "The gamification made learning fun, but the real value is in the quality of feedback. I improved more in 3 months than in a year at my job.",
+      position: language === 'en' ? "Marketing Coordinator" : "Koordinator Pemasaran",
+      quoteEn: "The gamification made learning fun, but the real value is in the quality of feedback. I improved more in 3 months than in a year at my job.",
+      quoteId: "Gamifikasi membuat belajar menyenangkan, tapi nilai sebenarnya ada pada kualitas umpan balik. Saya meningkat lebih banyak dalam 3 bulan daripada dalam setahun di pekerjaan saya.",
       stars: 4,
-      level: "Associate"
+      level: language === 'en' ? "Associate" : "Associate"
     }
   ];
 
@@ -33,10 +39,10 @@ const Testimonials = () => {
       <div className="container px-4 md:px-6 mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Success Stories
+            {t('landing.testimonials.title')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            See how others have transformed their careers with Copytology
+            {t('landing.testimonials.subtitle')}
           </p>
         </div>
         
@@ -54,7 +60,7 @@ const Testimonials = () => {
                 </div>
                 
                 <blockquote className="text-gray-700 mb-6">
-                  "{testimonial.quote}"
+                  "{language === 'en' ? testimonial.quoteEn : testimonial.quoteId}"
                 </blockquote>
                 
                 <div className="flex items-center justify-between">
