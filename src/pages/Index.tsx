@@ -7,12 +7,8 @@ import CareerPath from '@/components/CareerPath';
 import Testimonials from '@/components/Testimonials';
 import CTA from '@/components/CTA';
 import Footer from '@/components/Footer';
-import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
-  // Add language context
-  const { language } = useLanguage();
-  
   return (
     <div className="min-h-screen bg-white">
       <Navbar />

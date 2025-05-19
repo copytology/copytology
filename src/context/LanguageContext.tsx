@@ -96,28 +96,13 @@ export const translations = {
     'landing.hero.learnmore': 'Learn More',
     'landing.features.title': 'Develop Professional Writing Skills',
     'landing.features.subtitle': 'Everything you need to build your skills and transition to a writing career',
-    'landing.features.diverse': 'Diverse Writing Challenges',
-    'landing.features.diverse.desc': 'Practice with realistic scenarios across copywriting, content writing, and UX writing disciplines.',
-    'landing.features.ai.feedback': 'AI-Powered Feedback',
-    'landing.features.ai.feedback.desc': 'Get instant, personalized feedback on your writing with specific improvement suggestions.',
-    'landing.features.analytics': 'Performance Analytics',
-    'landing.features.analytics.desc': 'Track your progress over time and identify your strengths and areas for improvement.',
-    'landing.features.career': 'Career Progression Path',
-    'landing.features.career.desc': 'Level up from Intern to CMO as you master new skills and complete challenges.',
-    'landing.features.scenarios': 'Real-world Scenarios',
-    'landing.features.scenarios.desc': 'Practice with challenges based on actual industry tasks and requirements.',
-    'landing.features.briefs': 'Industry-standard Briefs',
-    'landing.features.briefs.desc': 'Learn to work with proper creative briefs and project specifications.',
-    
     'landing.cta.title': 'Ready to Start Your Writing Journey?',
     'landing.cta.subtitle': 'Join thousands of aspiring writers who have transformed their skills and careers with Copytology.',
     'landing.cta.getstarted': 'Get Started for Free',
     'landing.cta.viewpricing': 'View Pricing',
     'landing.cta.nocreditcard': 'No credit card required. Start with our free tier and upgrade anytime.',
-    
     'landing.testimonials.title': 'Success Stories',
     'landing.testimonials.subtitle': 'See how others have transformed their careers with Copytology',
-    
     'landing.careerpath.title': 'Your Writing Career Path',
     'landing.careerpath.subtitle': 'Track your progress through real-world career milestones as you complete writing challenges',
 
@@ -221,34 +206,18 @@ export const translations = {
     'landing.hero.feature3': 'Lacak kemajuan Anda dengan level dan pencapaian karir',
     'landing.hero.getstarted': 'Mulai',
     'landing.hero.learnmore': 'Pelajari Lebih Lanjut',
-    
     'landing.features.title': 'Kembangkan Keterampilan Menulis Profesional',
     'landing.features.subtitle': 'Semua yang Anda butuhkan untuk membangun keterampilan dan beralih ke karir menulis',
-    'landing.features.diverse': 'Tantangan Menulis Beragam',
-    'landing.features.diverse.desc': 'Berlatih dengan skenario realistis di berbagai disiplin copywriting, penulisan konten, dan UX writing.',
-    'landing.features.ai.feedback': 'Umpan Balik berbasis AI',
-    'landing.features.ai.feedback.desc': 'Dapatkan umpan balik instan dan personal untuk tulisan Anda dengan saran peningkatan spesifik.',
-    'landing.features.analytics': 'Analitik Performa',
-    'landing.features.analytics.desc': 'Lacak kemajuan Anda dari waktu ke waktu dan identifikasi kekuatan dan area perbaikan Anda.',
-    'landing.features.career': 'Jalur Pengembangan Karir',
-    'landing.features.career.desc': 'Naik level dari Magang ke CMO saat Anda menguasai keterampilan baru dan menyelesaikan tantangan.',
-    'landing.features.scenarios': 'Skenario Dunia Nyata',
-    'landing.features.scenarios.desc': 'Berlatih dengan tantangan berdasarkan tugas dan persyaratan industri aktual.',
-    'landing.features.briefs': 'Brief Standar Industri',
-    'landing.features.briefs.desc': 'Belajar bekerja dengan brief kreatif dan spesifikasi proyek yang tepat.',
-    
     'landing.cta.title': 'Siap Memulai Perjalanan Menulis Anda?',
     'landing.cta.subtitle': 'Bergabunglah dengan ribuan penulis aspirasi yang telah mengubah keterampilan dan karir mereka dengan Copytology.',
     'landing.cta.getstarted': 'Mulai Gratis',
     'landing.cta.viewpricing': 'Lihat Harga',
     'landing.cta.nocreditcard': 'Tidak perlu kartu kredit. Mulai dengan tier gratis dan upgrade kapan saja.',
-    
     'landing.testimonials.title': 'Kisah Sukses',
     'landing.testimonials.subtitle': 'Lihat bagaimana orang lain telah mengubah karir mereka dengan Copytology',
-    
     'landing.careerpath.title': 'Jalur Karir Menulis Anda',
     'landing.careerpath.subtitle': 'Lacak kemajuan Anda melalui tonggak karir dunia nyata saat Anda menyelesaikan tantangan menulis',
-    
+
     // Footer
     'footer.resources': 'Sumber Daya',
     'footer.about': 'Tentang',

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
 import { Challenge } from '@/services/api';
-import { useLanguage } from '@/context/LanguageContext';
 
 interface ChallengeDetailProps {
   challenge: Challenge;
@@ -25,8 +24,6 @@ const ChallengeDetail: React.FC<ChallengeDetailProps> = ({
   onSubmissionChange,
   onSubmit
 }) => {
-  const { t } = useLanguage();
-  
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty.toLowerCase()) {
       case 'easy': return 'bg-green-100 text-green-700';
@@ -49,30 +46,30 @@ const ChallengeDetail: React.FC<ChallengeDetailProps> = ({
       </CardHeader>
       <CardContent className="space-y-6">
         <div>
-          <h3 className="font-medium text-gray-900 mb-2">{t('challenge.description')}:</h3>
+          <h3 className="font-medium text-gray-900 mb-2">Description:</h3>
           <p className="text-gray-700">{challenge.description}</p>
         </div>
         
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-100">
-          <h3 className="font-medium text-gray-900 mb-2">{t('challenge.your.challenge')}:</h3>
+          <h3 className="font-medium text-gray-900 mb-2">Your Challenge:</h3>
           <p className="text-gray-700">{challenge.brief}</p>
         </div>
         
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <label htmlFor="submission" className="font-medium text-gray-900">
-              {t('challenge.your.response')}:
+              Your Response:
             </label>
             <div className="flex items-center text-sm text-gray-500">
               <span className={wordCount > challenge.word_limit ? 'text-red-500' : ''}>
-                {wordCount}/{challenge.word_limit} {t('challenge.words')}
+                {wordCount}/{challenge.word_limit} words
               </span>
             </div>
           </div>
           
           <Textarea
             id="submission"
-            placeholder={t('challenge.your.response')}
+            placeholder="Write your response here..."
             className="min-h-[150px] text-base"
             value={submission}
             onChange={onSubmissionChange}
@@ -89,10 +86,10 @@ const ChallengeDetail: React.FC<ChallengeDetailProps> = ({
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {t('challenge.analyzing')}
+              Analyzing...
             </>
           ) : (
-            t('challenge.submit')
+            'Submit Response'
           )}
         </Button>
       </CardFooter>
