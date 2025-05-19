@@ -3,7 +3,7 @@ import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { LayoutDashboard, BookOpen, ClipboardList, User, LogOut, Menu } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ClipboardList, User, LogOut, Menu, Globe } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +17,8 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 import { useAuth } from '@/context/AuthContext';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface NavbarProps {
   currentXp?: number;
@@ -28,6 +30,7 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
   
   // Use the isLoggedIn prop or check if user exists
   const isAuthenticated = isLoggedIn || !!user;
@@ -41,8 +44,8 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
 
   // Define navigation items for authenticated users
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={16} className="mr-2" /> },
-    { name: 'History', path: '/history', icon: <ClipboardList size={16} className="mr-2" /> },
+    { name: t('nav.dashboard'), path: '/dashboard', icon: <LayoutDashboard size={16} className="mr-2" /> },
+    { name: t('nav.history'), path: '/history', icon: <ClipboardList size={16} className="mr-2" /> },
   ];
 
   const isActivePath = (path: string) => location.pathname === path;
@@ -54,7 +57,7 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
           <div className="bg-brand-400 rounded-md w-8 h-8 flex items-center justify-center">
             <span className="text-white font-bold text-xl">C</span>
           </div>
-          <span className="text-gray-900 font-bold text-xl hidden sm:inline-block">Copytology</span>
+          <span className="text-gray-900 font-bold text-xl hidden sm:inline-block">{t('app.name')}</span>
         </Link>
         
         {isAuthenticated ? (
@@ -112,15 +115,22 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
                     }`}
                   >
                     <User size={16} className="mr-2" />
-                    Profile
+                    {t('nav.profile')}
                   </Link>
+                  <div className="px-3 py-2">
+                    <div className="flex items-center mb-2">
+                      <Globe size={16} className="mr-2 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-600">{t('language.english')}</span>
+                    </div>
+                    <LanguageSwitcher />
+                  </div>
                   <Button 
                     variant="ghost" 
                     className="flex items-center justify-start px-3 py-2 rounded-md text-sm font-medium text-red-500 hover:bg-red-50"
                     onClick={handleLogout}
                   >
                     <LogOut size={16} className="mr-2" />
-                    Log out
+                    {t('nav.logout')}
                   </Button>
                 </nav>
               </SheetContent>
@@ -132,6 +142,10 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
                 <div className="text-brand-400 mr-2 font-bold">{currentXp} XP</div>
                 <span className="mx-2 text-gray-300">|</span>
                 <span className="text-sm font-medium">{level}</span>
+              </div>
+              
+              <div className="hidden md:flex items-center mr-4">
+                <LanguageSwitcher />
               </div>
               
               <DropdownMenu>
@@ -148,19 +162,19 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
                   <DropdownMenuItem asChild>
                     <Link to="/profile" className="cursor-pointer flex items-center">
                       <User size={16} className="mr-2" />
-                      Profile
+                      {t('nav.profile')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link to="/dashboard" className="cursor-pointer flex items-center">
                       <BookOpen size={16} className="mr-2" />
-                      My Challenges
+                      {t('dashboard.title')}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="cursor-pointer flex items-center text-red-500">
                     <LogOut size={16} className="mr-2" />
-                    Log out
+                    {t('nav.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -171,19 +185,20 @@ const Navbar = ({ currentXp = 0, level = "Intern", isLoggedIn }: NavbarProps) =>
             {/* Navigation for non-authenticated users */}
             <nav className="hidden md:flex items-center space-x-6">
               <Link to="/" className="text-gray-600 hover:text-brand-500 transition-colors">
-                Home
+                {t('nav.dashboard')}
               </Link>
               <Link to="/about" className="text-gray-600 hover:text-brand-500 transition-colors">
-                About
+                {t('footer.about')}
               </Link>
+              <LanguageSwitcher />
             </nav>
             
             <div className="flex items-center space-x-2">
               <Link to="/login">
-                <Button variant="outline">Log In</Button>
+                <Button variant="outline">{t('nav.login')}</Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-brand-400 hover:bg-brand-500 text-white">Sign Up</Button>
+                <Button className="bg-brand-400 hover:bg-brand-500 text-white">{t('nav.register')}</Button>
               </Link>
             </div>
           </>

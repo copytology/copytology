@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Challenge } from '@/services/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface HelpDialogProps {
   open: boolean;
@@ -11,30 +12,31 @@ interface HelpDialogProps {
 }
 
 const HelpDialog: React.FC<HelpDialogProps> = ({ open, onClose, challenge }) => {
+  const { t } = useLanguage();
+  
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Writing Hints</DialogTitle>
+          <DialogTitle>{t('challenge.writing.hints')}</DialogTitle>
           <DialogDescription>
-            Here are some tips to help with this challenge.
+            {t('challenge.tip')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4 py-4">
           <p className="text-gray-700">
-            For this {challenge.type} challenge, consider the specific audience and purpose. 
-            What action do you want the reader to take?
+            {t('challenge.tip.consider').replace('{type}', challenge.type)}
           </p>
           
           <p className="text-gray-700">
-            Some possible approaches:
+            {t('challenge.tip.approaches')}
           </p>
           <ul className="list-disc list-inside text-gray-700">
-            <li>Focus on benefits, not just features</li>
-            <li>Use clear, concise language</li>
-            <li>Create emotional connection</li>
-            <li>Include a call to action</li>
+            <li>{t('challenge.tip.benefits')}</li>
+            <li>{t('challenge.tip.language')}</li>
+            <li>{t('challenge.tip.connection')}</li>
+            <li>{t('challenge.tip.cta')}</li>
           </ul>
           
           {challenge.example_prompt && (
@@ -44,7 +46,7 @@ const HelpDialog: React.FC<HelpDialogProps> = ({ open, onClose, challenge }) => 
           )}
         </div>
         
-        <Button onClick={onClose}>Got it</Button>
+        <Button onClick={onClose}>{t('challenge.got.it')}</Button>
       </DialogContent>
     </Dialog>
   );

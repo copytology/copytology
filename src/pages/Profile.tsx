@@ -5,11 +5,15 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, User, Trophy, BookOpen } from 'lucide-react';
+import { Loader2, User, Trophy, BookOpen, Globe } from 'lucide-react';
 import LevelProgress from '@/components/LevelProgress';
+import LanguageSelector from '@/components/LanguageSelector';
 import { api } from '@/services/api';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Profile = () => {
+  const { t } = useLanguage();
+  
   // Fetch user profile data
   const { 
     data: profile,
@@ -59,12 +63,12 @@ const Profile = () => {
       />
       
       <main className="flex-1 container py-8">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Your Profile</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{t('nav.profile')}</h1>
         
         {isLoading ? (
           <div className="text-center py-12">
             <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-brand-400" />
-            <p className="text-lg text-gray-600">Loading profile...</p>
+            <p className="text-lg text-gray-600">{t('dashboard.loading')}</p>
           </div>
         ) : profile ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -122,6 +126,18 @@ const Profile = () => {
                     <p className="text-2xl font-semibold">{totalXpEarned} XP</p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Language Settings */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center">
+                  <Globe size={18} className="mr-2" /> Language Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <LanguageSelector />
               </CardContent>
             </Card>
           </div>

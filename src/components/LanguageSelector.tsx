@@ -15,7 +15,7 @@ const LanguageSelector: React.FC = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{language === 'en' ? 'Language Settings' : 'Pengaturan Bahasa'}</CardTitle>
+        <CardTitle>{t(language === 'en' ? 'Language Settings' : 'Pengaturan Bahasa')}</CardTitle>
         <CardDescription>
           {language === 'en' 
             ? 'Select your preferred language for the interface and challenges' 
@@ -26,11 +26,11 @@ const LanguageSelector: React.FC = () => {
         <RadioGroup value={language} onValueChange={handleLanguageChange} className="space-y-4">
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="en" id="language-en" />
-            <Label htmlFor="language-en" className="cursor-pointer">English</Label>
+            <Label htmlFor="language-en" className="cursor-pointer">{t('language.english')}</Label>
           </div>
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="id" id="language-id" />
-            <Label htmlFor="language-id" className="cursor-pointer">Bahasa Indonesia</Label>
+            <Label htmlFor="language-id" className="cursor-pointer">{t('language.indonesian')}</Label>
           </div>
         </RadioGroup>
       </CardContent>
